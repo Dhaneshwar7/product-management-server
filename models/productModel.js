@@ -27,7 +27,7 @@ const productModel = mongoose.Schema(
 		category: {
 			type: String,
 		},
-		images: {
+		productImageUrl: {
 			type: Object,
 			default: {
 				fileId: '',
@@ -60,5 +60,5 @@ const productModel = mongoose.Schema(
 	{ timestamps: true }
 );
 
-const Product = mongoose.model('Product', productModel);
+const Product = mongoose.model('product', productModel);
 module.exports = Product;
