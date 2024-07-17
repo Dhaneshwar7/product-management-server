@@ -11,12 +11,22 @@ const imageKit = require('../utils/imageKit').uploadImagekit();
 /* ------------ Product Controllers ---------- */
 
 /* -----------  ADMIN PRODUCT CREATE  -----------*/
-exports.createProduct = catchAsyncError(async (req, res, next) => {
+exports.productCreate = catchAsyncError(async (req, res, next) => {
 	const admin = await Admin.findById(req.id).exec();
 	const product = await new Product(req.body);
-	product.admin = admin._id;
+	product.admins = admin._id;
 	admin.products.push(product._id);
 	await product.save();
 	await admin.save();
 	res.status(201).json({ success: true, product });
 });
+
+
+exports.productViewAll = catchAsyncError(async (req, res, next) => {});
+
+
+exports.productView = catchAsyncError(async (req, res, next) => {});
+exports.productUpdate = catchAsyncError(async (req, res, next) => {});
+exports.productDelete = catchAsyncError(async (req, res, next) => {});
+exports.productImage = catchAsyncError(async (req, res, next) => {});
+

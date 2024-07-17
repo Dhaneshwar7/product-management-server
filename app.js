@@ -46,6 +46,7 @@ app.use(cookieparser());
 
 //Routes
 app.use('/', require('./routes/adminRoutes'));
+app.use('/admin/product', require('./routes/productRoutes'));
 
 //Error Handling
 const ErroHandler = require('./utils/ErrorHandlers');
