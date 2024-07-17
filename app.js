@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const connectDatabase = require('./models/database');
 const logger = require('morgan');
 const cors = require('cors');
 
@@ -7,6 +8,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: './.env' });
 
 //Database connection
+connectDatabase.databaseConnect();
 
 //Express FileUpload
 const fileupload = require('express-fileupload');
