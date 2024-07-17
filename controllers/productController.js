@@ -154,15 +154,20 @@ exports.productFilter = catchAsyncError(async (req, res, next) => {
 	});
 });
 
+/* -----------  ADMIN PRODUCT Many  -----------*/
 exports.productsCreateMany = catchAsyncError(async (req, res, next) => {
 	const admin = await Admin.findById(req.id).exec();
-
 	if (!admin) {
 		return next(new ErrorHandler('Admin not found', 404));
 	}
-
 	// Ensure req.body is an array of products
 	const productsData = Array.isArray(req.body) ? req.body : [req.body];
+
+	// Insert many products at once
+	const products = await Product.insertMany(productsWithAdmin);
+
+	// Add the newly created product IDs to the admin's products array
+	admin.products.push(...products.map(product => product._id));
 
 	// Map through the productsData and add the admin reference to each product
 	const productsWithAdmin = productsData.map(productData => ({
@@ -170,11 +175,6 @@ exports.productsCreateMany = catchAsyncError(async (req, res, next) => {
 		admins: admin._id,
 	}));
 
-	// Insert many products at once
-	const products = await Product.insertMany(productsWithAdmin);
-
-	// Add the newly created product IDs to the admin's products array
-	admin.products.push(...products.map(product => product._id));
 	await admin.save();
 
 	res.status(201).json({ success: true, products });

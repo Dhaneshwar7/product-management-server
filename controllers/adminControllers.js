@@ -150,5 +150,3 @@ exports.deleteAdmin = catchAsyncError(async (req, res, next) => {
 		});
 	}
 });
-
-

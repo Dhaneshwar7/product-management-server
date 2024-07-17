@@ -1,5 +1,5 @@
-exports.sendtoken = (student, statusCode, res) => {
-	const token = student.getjwttoken();
+exports.sendtoken = (admin, statusCode, res) => {
+	const token = admin.getjwttoken();
 
 	const options = {
 		expires: new Date(
@@ -12,6 +12,6 @@ exports.sendtoken = (student, statusCode, res) => {
 	res
 		.status(statusCode)
 		.cookie('token', token, options)
-		.json({ success: true, id: student._id, token });
+		.json({ success: true, id: admin._id, token });
 
 };

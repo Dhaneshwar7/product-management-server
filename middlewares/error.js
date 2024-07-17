@@ -5,7 +5,7 @@ exports.generatedErrors = (err, req, res, next) => {
 		err.name === 'MongoServerError' &&
 		err.message.includes('E11000 duplicate key')
 	) {
-		err.message = "Student with this email is already Exists"
+		err.message = "Admin with this email is already Exists"
 	}
 	res.status(statusCode).json({
 		message: err.message,
