@@ -7,6 +7,8 @@ const {
 	productDelete,
 	productImage,
     productFilter,
+    productsCreateMany,
+    productSearch,
 } = require('../controllers/productController');
 const { isAuthenticated } = require('../middlewares/auth');
 
@@ -17,6 +19,10 @@ const router = express.Router();
 /* -----------  ADMIN PRODUCT CREATE  -----------*/
 // POST /admin/product/create  ✅
 router.post('/create', isAuthenticated, productCreate);
+
+/* -----------  ADMIN PRODUCT CREATE Many  -----------*/
+// POST /admin/product/create-many  ✅
+router.post('/create-many', isAuthenticated, productsCreateMany);
 
 // POST /admin/product/view ✅
 router.get('/viewall', isAuthenticated, productViewAll);
@@ -33,7 +39,12 @@ router.delete('/delete/:productId', isAuthenticated, productDelete);
 // POST /admin/product/:productId ✅
 router.post('/product-image/:id', isAuthenticated, productImage);
 
-// Pagination and Filtering Routes Additionall
+// GET /admin/product/?query Pagination and Filtering Routes Additional
 router.get('/product-filter/', isAuthenticated, productFilter);
+
+// Pagination and Filtering Routes Additionall
+router.get('/search/', isAuthenticated, productSearch);
+
+
 
 module.exports = router;

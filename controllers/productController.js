@@ -113,4 +113,111 @@ exports.productImage = catchAsyncError(async (req, res, next) => {
 });
 
 /* -----------  ADMIN PRODUCT FILTER  -----------*/
-exports.productFilter = catchAsyncError(async (req, res, next) => {})
+exports.productFilter = catchAsyncError(async (req, res, next) => {
+	const {
+		page = 1,
+		limit = 10,
+		priceRange,
+		quantity,
+		startDate,
+		endDate,
+	} = req.query;
+	const query = {};
+	// Filtering by Query values
+	if (priceRange) {
+		const [minPrice, maxPrice] = priceRange.split('-').map(Number);
+		query.price = { $gte: minPrice, $lte: maxPrice };
+	}
+	if (quantity) {
+		query.quantity = { $gte: Number(quantity) };
+	}
+	if (startDate && endDate) {
+		query.manufactured = { $gte: new Date(startDate), $lte: new Date(endDate) };
+	}
+
+	// Pagination
+	const skip = (page - 1) * limit;
+	const products = await Product.find(query).skip(skip).limit(Number(limit));
+
+	const totalProducts = await Product.countDocuments(query);
+	const totalPages = Math.ceil(totalProducts / limit);
+
+	res.status(200).json({
+		success: true,
+		data: products,
+		pagination: {
+			totalProducts,
+			totalPages,
+			currentPage: Number(page),
+			limit: Number(limit),
+		},
+	});
+});
+
+exports.productsCreateMany = catchAsyncError(async (req, res, next) => {
+	const admin = await Admin.findById(req.id).exec();
+
+	if (!admin) {
+		return next(new ErrorHandler('Admin not found', 404));
+	}
+
+	// Ensure req.body is an array of products
+	const productsData = Array.isArray(req.body) ? req.body : [req.body];
+
+	// Map through the productsData and add the admin reference to each product
+	const productsWithAdmin = productsData.map(productData => ({
+		...productData,
+		admins: admin._id,
+	}));
+
+	// Insert many products at once
+	const products = await Product.insertMany(productsWithAdmin);
+
+	// Add the newly created product IDs to the admin's products array
+	admin.products.push(...products.map(product => product._id));
+	await admin.save();
+
+	res.status(201).json({ success: true, products });
+});
+
+exports.productSearch = catchAsyncError(async (req, res, next) => {
+	const { name, minPrice, maxPrice, minQuantity, maxQuantity, status } =
+		req.query;
+
+	// Assuming req.id is the ID of the currently logged-in admin
+	const adminId = req.id;
+
+	// Build the search query
+	let query = { admins: adminId };
+
+	if (name) {
+		query.productName = { $regex: name, $options: 'i' }; // Case-insensitive search
+	}
+	if (minPrice) {
+		query.price = { ...query.price, $gte: Number(minPrice) };
+	}
+	if (maxPrice) {
+		query.price = { ...query.price, $lte: Number(maxPrice) };
+	}
+	if (minQuantity) {
+		query.quantity = { ...query.quantity, $gte: Number(minQuantity) };
+	}
+	if (maxQuantity) {
+		query.quantity = { ...query.quantity, $lte: Number(maxQuantity) };
+	}
+	if (status) {
+		query.status = status;
+	}
+
+	try {
+		const products = await Product.find(query)
+			.populate({
+				path: 'admins',
+				match: { _id: adminId },
+			})
+			.exec();
+		res.status(200).json({ success: true, products });
+	} catch (error) {
+		res.status(500).json({ success: false, message: error.message });
+	}
+});
