@@ -15,13 +15,16 @@ const fileupload = require('express-fileupload');
 app.use(fileupload());
 
 //cor setup
-app.use(cors());
-cors({
-	credentials: true,
-	// origin: 'http://localhost:5173',
-	methods: ['GET', 'POST, PUT', 'DELETE'],
-	allowedHeaders: ['Content-Type', 'Authorization'],	
-});
+app.use(
+	cors({
+		credentials: true,
+		origin: 'http://localhost:5173',
+		methods: ['GET', 'POST, PUT', 'DELETE'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
+	})
+);
+
+// cors({ origin: '*' });
 
 //logger
 app.use(logger('tiny'));
@@ -39,6 +42,7 @@ app.use(
 		resave: true,
 		saveUninitialized: true,
 		secret: process.env.EXPRESS_SESSION_SECRET,
+		cookie: { secure: true, sameSite: 'lax' },
 	})
 );
 
