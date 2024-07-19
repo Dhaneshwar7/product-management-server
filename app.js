@@ -16,12 +16,12 @@ app.use(fileupload());
 
 //cor setup
 app.use(cors());
-cors({
-	credentials: true,
-	// origin: 'http://localhost:5173',
-	methods: ['GET', 'POST, PUT', 'DELETE'],
-	allowedHeaders: ['Content-Type', 'Authorization'],	
-});
+// cors({
+// 	credentials: true,
+// 	// origin: 'http://localhost:5173',
+// 	methods: ['GET', 'POST, PUT', 'DELETE'],
+// 	allowedHeaders: ['Content-Type', 'Authorization'],	
+// });
 
 //logger
 app.use(logger('tiny'));

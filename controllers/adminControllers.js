@@ -19,29 +19,50 @@ exports.currentAdmin = catchAsyncError(async (req, res, next) => {
 
 /* -----------  ADMIN SIGN_UP  -----------*/
 exports.adminSignUp = catchAsyncError(async (req, res, next) => {
-	const alreadyAdmin = await Admin.findOne({ email: req.body.email });
-	if (alreadyAdmin) {
-		return next(new ErrorHandler('Email Address already registered '));
-	}
-	const admin = await new Admin(req.body).save();
+	try {
+		const alreadyAdmin = await Admin.findOne({ email: req.body.email });
+		if (alreadyAdmin) {
+			throw new ErrorHandler({
+				message: 'Email Address already registered',
+				statusCode: 400,
+			});
+		}
+		const admin = await new Admin(req.body).save();
 
-	res.status(201).json({ admin });
+		res.status(201).json({
+			message: 'Admin created successfully!',
+			admin,
+		});
+	} catch (error) {
+		console.error('Error during admin signup:', error.message);
+		res.status(error.statusCode || 500).json({
+			message: error.message || 'Internal Server Error',
+		});
+	}
 });
 
 /* -----------  ADMIN SIGN_IN  -----------*/
 exports.adminSignIn = catchAsyncError(async (req, res, next) => {
-	const admin = await Admin.findOne({ email: req.body.email })
-		.select('+password')
-		.exec();
+	try {
+		const admin = await Admin.findOne({ email: req.body.email })
+			.select('+password')
+			.exec();
 
-	if (!admin) {
-		return next(new ErrorHandler('User not found with this Email Address'));
+		if (!admin) {
+			return next(new ErrorHandler('User not found with this Email Address'));
+		}
+
+		const isMatch = admin.comparepassword(req.body.password);
+		if (!isMatch)
+			return next(new ErrorHandler('Wrong Credentials ! Try again', 500));
+
+		sendtoken(admin, 200, res);
+	} catch (error) {
+		console.error('Error during admin signin:', error.message);
+		res.status(error.statusCode || 500).json({
+			message: error.message || 'Internal Server Error',
+		});
 	}
-
-	const isMatch = admin.comparepassword(req.body.password);
-	if (!isMatch)
-		return next(new ErrorHandler('Wrong Credentials ! Try again', 500));
-	sendtoken(admin, 200, res);
 });
 
 /* -----------  ADMIN SIGN_OUT  -----------*/
