@@ -18,9 +18,9 @@ app.use(fileupload());
 app.use(cors());
 cors({
 	credentials: true,
-	origin: 'http://localhost:5173/',
+	origin: 'http://localhost:5173',
 	methods: ['GET', 'POST, PUT', 'DELETE'],
-	allowedHeaders: ['Content-Type', 'Authorization'],
+	allowedHeaders: ['Content-Type', 'Authorization'],	
 });
 
 //logger
