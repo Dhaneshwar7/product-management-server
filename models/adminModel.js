@@ -13,22 +13,6 @@ const adminModel = mongoose.Schema(
 			type: String,
 			minLength: [3, 'Last Name should be atleast of 3 Character'],
 		},
-		contact: {
-			type: String,
-			required: [true, 'Contact is Required'],
-			minLength: [10, 'Constact must not be exceed of 10 Numbers'],
-			maxLength: [10, 'Constact must be atleast of 10 Numbers'],
-		},
-		city: {
-			type: String,
-			required: [true, 'City is Required'],
-			minLength: [3, 'City Name should be atleast of 3 Character'],
-		},
-		gender: {
-			type: String,
-			enum: ['Male', 'Female', 'Others'],
-			default: 'Male',
-		},
 		email: {
 			type: String,
 			required: true,
@@ -44,6 +28,22 @@ const adminModel = mongoose.Schema(
 			minLength: [4, 'Password should have atleast 6 Characters'],
 			maxLength: [15, 'Password should not exceed more than 15 Characters'],
 			// match: [/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,1024}$/ , "Password must have this char"],
+		},
+		contact: {
+			type: String,
+			required: [true, 'Contact is Required'],
+			minLength: [10, 'Constact must not be exceed of 10 Numbers'],
+			maxLength: [10, 'Constact must be atleast of 10 Numbers'],
+		},
+		city: {
+			type: String,
+			required: [true, 'City is Required'],
+			minLength: [3, 'City Name should be atleast of 3 Character'],
+		},
+		gender: {
+			type: String,
+			enum: ['Male', 'Female', 'Others'],
+			default: 'Male',
 		},
 		resetpasswordToken: {
 			type: String,
