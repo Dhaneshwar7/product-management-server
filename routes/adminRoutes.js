@@ -20,7 +20,7 @@ const router = express.Router();
 router.get('/', homepage);
 
 // GET /admin ✅
-router.post('/admin', isAuthenticated, currentAdmin);
+router.get('/admin', isAuthenticated, currentAdmin);
 
 // POST /admin/signup ✅
 router.post('/admin/signup', adminSignUp);
