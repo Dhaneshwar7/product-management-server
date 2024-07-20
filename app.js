@@ -37,14 +37,25 @@ app.use(express.urlencoded({ extended: false }));
 //Express-Session, Cookie-parse
 const cookieparser = require('cookie-parser');
 const session = require('express-session');
+const MemoryStore = require('memorystore')(session);
 app.use(
 	session({
-		resave: true,
-		saveUninitialized: true,
+		cookie: { maxAge: 86400000 },
+		store: new MemoryStore({
+			checkPeriod: 86400000, // prune expired entries every 24h
+		}),
+		resave: false,
 		secret: process.env.EXPRESS_SESSION_SECRET,
-		cookie: { secure: true, sameSite: 'lax' },
 	})
 );
+// app.use(
+// 	session({
+// 		resave: true,
+// 		saveUninitialized: true,
+// 		secret: process.env.EXPRESS_SESSION_SECRET,
+// 		cookie: { secure: true, sameSite: 'lax' },
+// 	})
+// );
 
 app.use(cookieparser());
 
