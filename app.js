@@ -1,11 +1,10 @@
 const express = require('express');
 const app = express();
+const dotenv = require('dotenv');
+dotenv.config({ path: './.env' });
 const connectDatabase = require('./models/database');
 const logger = require('morgan');
 const cors = require('cors');
-
-const dotenv = require('dotenv');
-dotenv.config({ path: './.env' });
 
 //Database connection
 connectDatabase.databaseConnect();
@@ -14,22 +13,29 @@ connectDatabase.databaseConnect();
 const fileupload = require('express-fileupload');
 app.use(fileupload());
 
-//cor setup
-app.use(
-	cors({
-		credentials: true,
-		origin: 'http://localhost:5173',
-		methods: ['GET', 'POST, PUT', 'DELETE'],
-		allowedHeaders: ['Content-Type', 'Authorization'],
-	})
-);
+//CORS setup
+const allowedOrigins = [
+	'http://localhost:5173',
+	'https://bazar-ashen.vercel.app',
+];
+const corsOptions = {
+	origin: function (origin, callback) {
+		if (!origin || allowedOrigins.includes(origin)) {
+			callback(null, true);
+		} else {
+			callback(new Error('Not allowed by CORS'));
+		}
+	},
+	credentials: true,
+	methods: ['GET', 'POST', 'PUT', 'DELETE'],
+};
+app.use(cors(corsOptions));
 
-// cors({ origin: '*' });
 
 //logger
 app.use(logger('tiny'));
 
-//bodyParser
+//bodyParser for ejs page 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -37,26 +43,13 @@ app.use(express.urlencoded({ extended: false }));
 //Express-Session, Cookie-parse
 const cookieparser = require('cookie-parser');
 const session = require('express-session');
-const MemoryStore = require('memorystore')(session);
 app.use(
 	session({
-		cookie: { maxAge: 86400000 },
-		store: new MemoryStore({
-			checkPeriod: 86400000, // prune expired entries every 24h	
-		}),
-		resave: false,
+		resave: true,
+		saveUninitialized: true,
 		secret: process.env.EXPRESS_SESSION_SECRET,
 	})
 );
-// app.use(
-// 	session({
-// 		resave: true,
-// 		saveUninitialized: true,
-// 		secret: process.env.EXPRESS_SESSION_SECRET,
-// 		cookie: { secure: true, sameSite: 'lax' },
-// 	})
-// );
-
 app.use(cookieparser());
 
 //Routes
@@ -66,6 +59,8 @@ app.use('/admin/product', require('./routes/productRoutes'));
 //Error Handling
 const ErroHandler = require('./utils/ErrorHandlers');
 const { generatedErrors } = require('./middlewares/auth');
+app.use(generatedErrors);
+
 
 app.all('*', (req, res, next) => {
 	next(new ErroHandler(`Requested URL NOT FOUND ${req.url}`, 404));

@@ -1,0 +1,85 @@
+const express = require("express");
+const dotenv = require("dotenv");
+dotenv.config({path: "./.env"});
+const app = express();
+const fileupload = require("express-fileupload");
+const cors = require('cors');
+const bodyParser = require('body-parser')
+
+
+
+const allowedOrigins = [
+  'http://localhost:3030',
+  'https://hms-app-ten.vercel.app'
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true, 
+    methods: ["GET", "POST", "PUT", "DELETE"]
+  };
+
+  app.use(cors(corsOptions))
+
+
+
+app.use(express.static('public'))
+app.set('view engine','ejs')
+
+//DB Connection
+require("./Models/database.js").connectDatabase();
+
+//Logger
+const logger = require("morgan");
+app.use(logger("tiny"));
+
+//Activate Body-Parser
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
+
+//Activate Session & Cookie
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
+
+app.use(session({
+    resave: true,
+    saveUninitialized: true,
+    secret: process.env.EXPRESS_SESSION_SECRET,
+})
+);
+app.use(cookieParser());
+app.use(fileupload());
+
+
+
+//Routes
+app.use("/", require("./routes/indexRoutes.js"));
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'export/index.js'));
+  });
+
+
+
+//Error Handling
+const ErrorHandler = require("./utils/ErrorHandler");
+const { generatedErrors } = require("./Middlewares/errors");
+
+app.all("*", (req, res, next)=>{
+    next(new ErrorHandler(`Requested URL Not Found &{req.url}`, 404));
+});
+
+app.use(generatedErrors)
+
+
+
+app.listen(
+    process.env.PORT || 8080,
+    console.log(`server running on port ${process.env.PORT || 8080}`))
