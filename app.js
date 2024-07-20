@@ -14,10 +14,7 @@ const fileupload = require('express-fileupload');
 app.use(fileupload());
 
 //CORS setup
-const allowedOrigins = [
-	'http://localhost:5173',
-	'https://bazar-ashen.vercel.app',
-];
+const allowedOrigins = ['https://bazar-ashen.vercel.app'];
 const corsOptions = {
 	origin: function (origin, callback) {
 		if (!origin || allowedOrigins.includes(origin)) {
@@ -31,11 +28,10 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-
 //logger
 app.use(logger('tiny'));
 
-//bodyParser for ejs page 
+//bodyParser for ejs page
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -58,9 +54,8 @@ app.use('/admin/product', require('./routes/productRoutes'));
 
 //Error Handling
 const ErroHandler = require('./utils/ErrorHandlers');
-const { generatedErrors } = require('./middlewares/auth');
+const { generatedErrors } = require('./middlewares/error');
 app.use(generatedErrors);
-
 
 app.all('*', (req, res, next) => {
 	next(new ErroHandler(`Requested URL NOT FOUND ${req.url}`, 404));
