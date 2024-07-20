@@ -7,7 +7,7 @@ exports.sendtoken = (admin, statusCode, res) => {
 		),
 		httpOnly: true,
 		secure: true,
-		sameSite: "None",
+		sameSite: "none",
 	};
 
 	res
