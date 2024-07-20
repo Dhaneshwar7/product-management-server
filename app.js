@@ -14,7 +14,10 @@ const fileupload = require('express-fileupload');
 app.use(fileupload());
 
 //CORS setup
-const allowedOrigins = ['https://bazar-ashen.vercel.app'];
+const allowedOrigins = [
+	'http://localhost:5173',
+	'https://bazar-ashen.vercel.app',
+];
 const corsOptions = {
 	origin: function (origin, callback) {
 		if (!origin || allowedOrigins.includes(origin)) {
