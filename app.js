@@ -77,5 +77,11 @@ app.listen(
 		`Product-Mangagement SERVER IS RUNNING on Port ${process.env.PORT}`
 	)
 );
-
+if (process.env.NODE_ENV === 'production') {
+	// Use the production API endpoint
+	console.log('Running in production environment');
+} else {
+	// Use the development API endpoint
+	console.log('Running in development environment');
+}
 module.exports = app;

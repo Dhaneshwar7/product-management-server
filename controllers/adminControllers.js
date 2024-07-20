@@ -8,7 +8,7 @@ const imageKit = require('../utils/imageKit').uploadImagekit();
 
 exports.homepage = catchAsyncError((req, res, next) => {
 	res.send(` <div style="width: 100vw;height: 100vh; display: flex; align-items: center; justify-content: center;">
-            <h1 class="ok"  style="font-size: 68px; font-weight: 800; text-align: center;padding: 5vw; color: green;">Product Management Server Ready<br> ! Thank you 🙏 6</h1>
+            <h1 class="ok"  style="font-size: 68px; font-weight: 800; text-align: center;padding: 5vw; color: green;">Product Management Server Ready<br> ! Thank you 🙏 7</h1>
         </div>`);
 });
 
@@ -19,9 +19,7 @@ exports.currentAdmin = catchAsyncError(async (req, res, next) => {
 
 /* -----------  ADMIN SIGN_UP  -----------*/
 exports.adminSignUp = catchAsyncError(async (req, res, next) => {
-	const { email, username } = req.body; // Extract email and username
-
-	// Check for duplicate email or username
+	const { email } = req.body;
 	const existingAdmin = await Admin.findOne({ $or: [{ email }] });
 	if (existingAdmin) {
 		const error = new Error('Admin with this email or username already exists');
