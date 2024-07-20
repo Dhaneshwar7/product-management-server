@@ -8,7 +8,7 @@ const imageKit = require('../utils/imageKit').uploadImagekit();
 
 exports.homepage = catchAsyncError((req, res, next) => {
 	res.send(` <div style="width: 100vw;height: 100vh; display: flex; align-items: center; justify-content: center;">
-            <h1 class="ok"  style="font-size: 68px; font-weight: 800; text-align: center;padding: 5vw; color: green;">Product Management Server Ready<br> ! Thank you 🙏 5</h1>
+            <h1 class="ok"  style="font-size: 68px; font-weight: 800; text-align: center;padding: 5vw; color: green;">Product Management Server Ready<br> ! Thank you 🙏 6</h1>
         </div>`);
 });
 
@@ -19,26 +19,14 @@ exports.currentAdmin = catchAsyncError(async (req, res, next) => {
 
 /* -----------  ADMIN SIGN_UP  -----------*/
 exports.adminSignUp = catchAsyncError(async (req, res, next) => {
-	try {
-		const alreadyAdmin = await Admin.findOne({ email: req.body.email });
-		if (alreadyAdmin) {
-			throw new ErrorHandler({
-				message: 'Email Address already registered',
-				statusCode: 400,
-			});
-		}
-		const admin = await new Admin(req.body).save();
+	const admin = await new Admin(req.body);
+	await admin.save();
 
-		res.status(201).json({
-			message: 'Admin created successfully!',
-			admin,
-		});
-	} catch (error) {
-		console.error('Error during admin signup:', error.message);
-		res.status(error.statusCode || 500).json({
-			message: error.message,
-		});
-	}
+	sendtoken(admin, 200, res);
+	res.status(201).json({
+		message: 'Admin created successfully!',
+		admin,
+	});
 });
 
 /* -----------  ADMIN SIGN_IN  -----------*/
