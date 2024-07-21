@@ -83,3 +83,27 @@ app.use(generatedErrors)
 app.listen(
     process.env.PORT || 8080,
     console.log(`server running on port ${process.env.PORT || 8080}`))
+
+
+
+    exports.sendtoken = (student, statusCode, res) => {
+    try {
+      const token = student.getjwttoken();
+  
+      const options = {
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 4 * 60 * 60 * 1000),
+        httpOnly: true,
+        // sameSite: "None",
+        // secure: process.env.NODE_ENV === 'production',
+      };
+  
+      res
+        .status(statusCode)
+        .cookie('token', token, options)
+        .json({ success: true, id: student._id, token });
+    } catch (error) {
+      // Handle JWT token generation errors here
+      console.error('JWT token generation error:', error);
+      res.status(500).json({ success: false, message: 'Failed to generate JWT token' });
+    }
+  };
