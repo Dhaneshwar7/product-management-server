@@ -1,4 +1,6 @@
 const express = require('express');
+const multer = require('multer');
+
 const {
 	productCreate,
 	productView,
@@ -6,15 +8,27 @@ const {
 	productUpdate,
 	productDelete,
 	productImage,
-    productFilter,
-    productsCreateMany,
-    productSearch,
+	productFilter,
+	productsCreateMany,
+	productSearch,
+	productCreateFull,
 } = require('../controllers/productController');
 const { isAuthenticated } = require('../middlewares/auth');
 
 const router = express.Router();
 
 /* ------------ Product Routes ---------- */
+
+const storage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		cb(null, 'uploads/'); // Change 'uploads/' to your desired directory
+	},
+	filename: (req, file, cb) => {
+		cb(null, `${Date.now()}-${file.originalname}`); // Create unique filenames
+	},
+});
+
+const upload = multer({ storage });
 
 /* -----------  ADMIN PRODUCT CREATE  -----------*/
 // POST /admin/product/create  ✅
@@ -45,6 +59,11 @@ router.get('/product-filter/', isAuthenticated, productFilter);
 // Pagination and Filtering Routes Additionall
 router.get('/search/', isAuthenticated, productSearch);
 
-
+// POST /admin/product/create  ✅
+router.post(
+	'/create-product',
+	isAuthenticated,
+	productCreateFull
+);
 
 module.exports = router;

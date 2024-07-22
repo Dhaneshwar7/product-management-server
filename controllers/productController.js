@@ -1,6 +1,7 @@
 const exp = require('constants');
 const { catchAsyncError } = require('../middlewares/catchAsyncError');
 const Admin = require('../models/adminModel');
+const multer = require('multer');
 const ErrorHandler = require('../utils/ErrorHandlers');
 const { sendtoken } = require('../utils/SendToken');
 const { sendmail } = require('../utils/nodemailer');
@@ -10,11 +11,22 @@ const imageKit = require('../utils/imageKit').uploadImagekit();
 
 /* ------------ Product Controllers ---------- */
 
+const storage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		cb(null, 'uploads/'); // Change 'uploads/' to your desired directory
+	},
+	filename: (req, file, cb) => {
+		cb(null, `${Date.now()}-${file.originalname}`); // Create unique filenames
+	},
+});
+
+const upload = multer({ storage });
+
 /* -----------  ADMIN PRODUCT CREATE  -----------*/
 exports.productCreate = catchAsyncError(async (req, res, next) => {
 	const admin = await Admin.findById(req.id).exec();
 	const product = await new Product(req.body);
-	product.admins = admin._id;
+	product.admin = admin._id;
 	admin.products.push(product._id);
 	await product.save();
 	await admin.save();
@@ -75,7 +87,7 @@ exports.productImage = catchAsyncError(async (req, res, next) => {
 	if (!product) {
 		return next(new ErrorHandler('Product not found', 404));
 	}
-	const file = req.files.productImg;
+	const file = req.files.image;
 	if (!file) {
 		return next(new ErrorHandler('NO File uploaded', 500));
 	}
@@ -220,4 +232,43 @@ exports.productSearch = catchAsyncError(async (req, res, next) => {
 	} catch (error) {
 		res.status(500).json({ success: false, message: error.message });
 	}
+});
+exports.productCreateFull = catchAsyncError(async (req, res, next) => {
+	const admin = await Admin.findById(req.id).exec();
+	const product = await new Product(req.body).save();
+	product.admin = admin._id;
+
+	// Handle image upload if available
+	if (req.files && req.files.image) {
+		const file = req.files.image;
+		const modifiedName = `productImage-url-${Date.now()}${path.extname(
+			file.name
+		)}`;
+		// Delete the existing file if it exists (optional)
+		if (product.productImageUrl && product.productImageUrl.fileId) {
+			try {
+				await imageKit.deleteFile(product.productImageUrl.fileId);
+			} catch (error) {
+				console.error('Error deleting existing file:', error);
+			}
+		}
+		try {
+			const { fileId, url } = await imageKit.upload({
+				file: file.data,
+				fileName: modifiedName,
+			});
+			product.productImageUrl = { fileId, url };
+		} catch (error) {
+			console.error('Error uploading to ImageKit:', error);
+			return next(new ErrorHandler('Error uploading file', 500));
+		}
+	}
+
+	admin.products.push(product._id);
+	await Promise.all([product.save(), admin.save()]);
+	res.status(201).json({
+		success: true,
+		message: 'Product Added Successfully',
+		product,
+	});
 });

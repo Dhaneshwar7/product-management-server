@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 
 const productModel = mongoose.Schema(
 	{
-		admins: { type: mongoose.Schema.Types.ObjectId, ref: 'admin' },
+		admin: { type: mongoose.Schema.Types.ObjectId, ref: 'admin' },
 		productName: {
 			type: String,
 			required: [true, 'Product Name is Required'],
-			minLength: [3, 'Product Name should be minimum of 3 characters'],
+			// minLength: [3, 'Product Name should be minimum of 3 characters'],
 		},
 		price: {
 			type: Number,
