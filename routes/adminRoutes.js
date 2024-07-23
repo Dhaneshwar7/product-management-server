@@ -29,7 +29,7 @@ router.post('/admin/signup', adminSignUp);
 router.post('/admin/signin', adminSignIn);
 
 // // GET /admin/signout ✅
-router.get('/admin/signout', isAuthenticated, adminSignOut);
+router.post('/admin/signout', isAuthenticated, adminSignOut);
 
 // // POST /admin/update/:adminId ✅
 router.post('/admin/update/:id', isAuthenticated, adminUpdate);

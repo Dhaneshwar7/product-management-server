@@ -51,8 +51,17 @@ exports.adminSignIn = catchAsyncError(async (req, res, next) => {
 
 /* -----------  ADMIN SIGN_OUT  -----------*/
 exports.adminSignOut = catchAsyncError(async (req, res, next) => {
-	res.clearCookie('token');
-	res.json({ message: 'Signout Admin!' });
+	const options = {
+		expires: new Date(0),
+		httpOnly: true,
+		secure: true,
+		sameSite: 'none',
+	};
+
+	res
+		.status(200)
+		.cookie('token', '', options)
+		.json({ success: true, message:'Logout Successfully'});
 });
 
 /* -----------  ADMIN UPDATE_DETAILS  -----------*/
