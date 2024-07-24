@@ -7,9 +7,7 @@ const path = require('path');
 const imageKit = require('../utils/imageKit').uploadImagekit();
 
 exports.homepage = catchAsyncError((req, res, next) => {
-	res.send(` <div style="width: 100vw;height: 100vh; display: flex; align-items: center; justify-content: center;">
-            <h1 class="ok"  style="font-size: 68px; font-weight: 800; text-align: center;padding: 5vw; color: green;">Product Management Server Ready<br> ! Thank you 🙏 7</h1>
-        </div>`);
+	res.json({ message: 'This is HomePage' });
 });
 
 exports.currentAdmin = catchAsyncError(async (req, res, next) => {
@@ -18,35 +16,54 @@ exports.currentAdmin = catchAsyncError(async (req, res, next) => {
 });
 
 /* -----------  ADMIN SIGN_UP  -----------*/
+// exports.adminSignUp = catchAsyncError(async (req, res, next) => {
+// 	const { email } = req.body;
+// 	const existingAdmin = await Admin.findOne({ $or: [{ email }] });
+// 	if (existingAdmin) {
+// 		const error = new Error('Admin with this email or username already exists');
+// 		error.statusCode = 400;
+// 		res.status(600).json({ success: false, message: error });
+// 		return next(error);
+// 	}
+// 	const admin = new Admin(req.body);
+// 	await admin.save();
+
+// 	sendtoken(admin, 200, res);
+// });
+
 exports.adminSignUp = catchAsyncError(async (req, res, next) => {
 	const { email } = req.body;
 	const existingAdmin = await Admin.findOne({ $or: [{ email }] });
 	if (existingAdmin) {
-		const error = new Error('Admin with this email or username already exists');
+		const error = new ErrorHandler(
+			'Admin with this email or username already exists'
+		);
 		error.statusCode = 400;
 		return next(error);
 	}
 	const admin = new Admin(req.body);
 	await admin.save();
-
-	sendtoken(admin, 200, res);
+	const message = 'Account Created Successfully !';
+	sendtoken(admin, 200, res, message);
 });
 
 /* -----------  ADMIN SIGN_IN  -----------*/
 exports.adminSignIn = catchAsyncError(async (req, res, next) => {
-	const admin = await Admin.findOne({ email: req.body.email })
-		.select('+password')
-		.exec();
-
+	const { email, password } = req.body;
+	const admin = await Admin.findOne({ email }).select('+password').exec();
 	if (!admin) {
-		return next(new ErrorHandler('User not found with this Email Address'));
+		const error = new ErrorHandler('Wrong Credentials ! Try again');
+		error.statusCode = 800;
+		return next(error);
 	}
-
 	const isMatch = admin.comparepassword(req.body.password);
-	if (!isMatch)
-		return next(new ErrorHandler('Wrong Credentials ! Try again', 500));
-
-	sendtoken(admin, 200, res);
+	if (!isMatch) {
+		const error = new ErrorHandler('Wrong Credentials ! Try again');
+		error.statusCode = 800;
+		return next(error);
+	}
+	const message = 'Sign In Successfully !';
+	sendtoken(admin, 200, res, message);
 });
 
 /* -----------  ADMIN SIGN_OUT  -----------*/
@@ -61,7 +78,7 @@ exports.adminSignOut = catchAsyncError(async (req, res, next) => {
 	res
 		.status(200)
 		.cookie('token', '', options)
-		.json({ success: true, message:'Logout Successfully'});
+		.json({ success: true, message: 'Logout Successfully' });
 });
 
 /* -----------  ADMIN UPDATE_DETAILS  -----------*/

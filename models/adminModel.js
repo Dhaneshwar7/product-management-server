@@ -7,11 +7,11 @@ const adminModel = mongoose.Schema(
 		firstname: {
 			type: String,
 			required: [true, 'First Name is Required'],
-			minLength: [3, 'Firstname should be atleast of 3 Character'],
+			minLength: [2, 'Firstname should be atleast of 3 Character'],
 		},
 		lastname: {
 			type: String,
-			minLength: [3, 'Last Name should be atleast of 3 Character'],
+			minLength: [2, 'Last Name should be atleast of 3 Character'],
 		},
 		email: {
 			type: String,

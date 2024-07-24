@@ -1,4 +1,4 @@
-exports.sendtoken = (admin, statusCode, res) => {
+exports.sendtoken = (admin, statusCode, res, message) => {
 	const token = admin.getjwttoken();
 
 	const options = {
@@ -7,12 +7,11 @@ exports.sendtoken = (admin, statusCode, res) => {
 		),
 		httpOnly: true,
 		secure: true,
-		sameSite: "none",
+		sameSite: 'none',
 	};
 
 	res
 		.status(statusCode)
 		.cookie('token', token, options)
-		.json({ success: true, id: admin._id, token });
-
+		.json({ success: true, id: admin._id, token, message });
 };

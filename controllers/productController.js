@@ -64,6 +64,7 @@ exports.productUpdate = catchAsyncError(async (req, res, next) => {
 exports.productDelete = catchAsyncError(async (req, res, next) => {
 	const product = await req.params.productId;
 	try {
+		console.log(product);
 		const deletedProduct = await Product.findByIdAndDelete(product);
 		if (!deletedProduct)
 			return next(new ErrorHandler('Product not Found', 404));
@@ -129,13 +130,27 @@ exports.productFilter = catchAsyncError(async (req, res, next) => {
 	const {
 		page = 1,
 		limit = 10,
+		productName,
 		priceRange,
 		quantity,
 		startDate,
 		endDate,
 	} = req.query;
-	const query = {};
-	// Filtering by Query values
+
+	const adminId = req.id;
+
+	if (!adminId) {
+		return res.status(400).json({
+			success: false,
+			message: 'Admin ID not found in request',
+		});
+	}
+
+	const query = { admin: adminId };
+
+	if (productName) {
+		query.productName = { $regex: productName, $options: 'i' };
+	}
 	if (priceRange) {
 		const [minPrice, maxPrice] = priceRange.split('-').map(Number);
 		query.price = { $gte: minPrice, $lte: maxPrice };
@@ -144,66 +159,49 @@ exports.productFilter = catchAsyncError(async (req, res, next) => {
 		query.quantity = { $gte: Number(quantity) };
 	}
 	if (startDate && endDate) {
-		query.manufactured = { $gte: new Date(startDate), $lte: new Date(endDate) };
+		query.manufactured = {
+			$gte: new Date(startDate),
+			$lte: new Date(endDate),
+		};
 	}
 
-	// Pagination
-	const skip = (page - 1) * limit;
-	const products = await Product.find(query).skip(skip).limit(Number(limit));
+	try {
+		const skip = (page - 1) * limit;
+		const products = await Product.find(query)
+			.skip(skip)
+			.limit(Number(limit))
+			.lean()
+			.exec();
 
-	const totalProducts = await Product.countDocuments(query);
-	const totalPages = Math.ceil(totalProducts / limit);
+		const totalProducts = await Product.countDocuments(query);
+		const totalPages = Math.ceil(totalProducts / limit);
 
-	res.status(200).json({
-		success: true,
-		data: products,
-		pagination: {
-			totalProducts,
-			totalPages,
-			currentPage: Number(page),
-			limit: Number(limit),
-		},
-	});
-});
-
-/* -----------  ADMIN PRODUCT Many  -----------*/
-exports.productsCreateMany = catchAsyncError(async (req, res, next) => {
-	const admin = await Admin.findById(req.id).exec();
-	if (!admin) {
-		return next(new ErrorHandler('Admin not found', 404));
+		res.status(200).json({
+			success: true,
+			products: products,
+			pagination: {
+				currentPage: Number(page),
+				limit: Number(limit),
+				totalPages,
+				totalProducts,
+			},
+		});
+	} catch (error) {
+		console.error('Error fetching products:', error);
+		res.status(500).json({
+			success: false,
+			message: 'An error occurred while fetching products',
+		});
 	}
-	// Ensure req.body is an array of products
-	const productsData = Array.isArray(req.body) ? req.body : [req.body];
-
-	// Insert many products at once
-	const products = await Product.insertMany(productsWithAdmin);
-
-	// Add the newly created product IDs to the admin's products array
-	admin.products.push(...products.map(product => product._id));
-
-	// Map through the productsData and add the admin reference to each product
-	const productsWithAdmin = productsData.map(productData => ({
-		...productData,
-		admins: admin._id,
-	}));
-
-	await admin.save();
-
-	res.status(201).json({ success: true, products });
 });
-
 exports.productSearch = catchAsyncError(async (req, res, next) => {
-	const { name, minPrice, maxPrice, minQuantity, maxQuantity, status } =
-		req.query;
-
-	// Assuming req.id is the ID of the currently logged-in admin
+	const { searchText, minPrice, maxPrice, page = 1, limit = 10 } = req.query;
 	const adminId = req.id;
-
-	// Build the search query
-	let query = { admins: adminId };
-
-	if (name) {
-		query.productName = { $regex: name, $options: 'i' }; // Case-insensitive search
+	// Initial query to filter products by the logged-in admin
+	const query = { admin: adminId };
+	if (searchText) {
+		const searchRegex = new RegExp(searchText, 'i');
+		query.$or = [{ productName: searchRegex }, { category: searchRegex }];
 	}
 	if (minPrice) {
 		query.price = { ...query.price, $gte: Number(minPrice) };
@@ -211,28 +209,37 @@ exports.productSearch = catchAsyncError(async (req, res, next) => {
 	if (maxPrice) {
 		query.price = { ...query.price, $lte: Number(maxPrice) };
 	}
-	if (minQuantity) {
-		query.quantity = { ...query.quantity, $gte: Number(minQuantity) };
-	}
-	if (maxQuantity) {
-		query.quantity = { ...query.quantity, $lte: Number(maxQuantity) };
-	}
-	if (status) {
-		query.status = status;
-	}
-
+	// Pagination logic
+	const skip = (page - 1) * limit;
 	try {
 		const products = await Product.find(query)
-			.populate({
-				path: 'admins',
-				match: { _id: adminId },
-			})
+			.skip(skip)
+			.limit(Number(limit))
+			.lean()
 			.exec();
-		res.status(200).json({ success: true, products });
+		const totalProducts = await Product.countDocuments(query);
+		const totalPages = Math.ceil(totalProducts / limit);
+		if (products.length === 0) {
+			const error = new ErrorHandler('No products found with this Name');
+			error.statusCode = 400;
+			return next(error);
+		}
+		res.status(200).json({
+			success: true,
+			products,
+			pagination: {
+				currentPage: Number(page),
+				limit: Number(limit),
+				totalPages,
+				totalProducts,
+			},
+		});
 	} catch (error) {
-		res.status(500).json({ success: false, message: error.message });
+		console.error('Error during product search:', error);
+		return next(new ErrorHandler('Server Error', 500));
 	}
 });
+
 exports.productCreateFull = catchAsyncError(async (req, res, next) => {
 	const admin = await Admin.findById(req.id).exec();
 	const product = await new Product(req.body).save();
@@ -271,4 +278,32 @@ exports.productCreateFull = catchAsyncError(async (req, res, next) => {
 		message: 'Product Added Successfully',
 		product,
 	});
+});
+
+/* -----------  ADMIN PRODUCT Many  -----------*/
+/* -----------  ADMIN PRODUCT Many  -----------*/
+exports.productsCreateMany = catchAsyncError(async (req, res, next) => {
+	const admin = await Admin.findById(req.id).exec();
+	if (!admin) {
+		return next(new ErrorHandler('Admin not found', 404));
+	}
+
+	// Ensure req.body is an array of products
+	const productsData = Array.isArray(req.body) ? req.body : [req.body];
+
+	// Map through the productsData and add the admin reference to each product
+	const productsWithAdmin = productsData.map(productData => ({
+		...productData,
+		admin: admin._id, // Change this line to ensure it matches the schema
+	}));
+
+	// Insert many products at once
+	const products = await Product.insertMany(productsWithAdmin);
+
+	// Add the newly created product IDs to the admin's products array
+	admin.products.push(...products.map(product => product._id));
+
+	await admin.save();
+
+	res.status(201).json({ success: true, products });
 });

@@ -57,7 +57,7 @@ router.post('/product-image/:id', isAuthenticated, productImage);
 router.get('/product-filter/', isAuthenticated, productFilter);
 
 // Pagination and Filtering Routes Additionall
-router.get('/search/', isAuthenticated, productSearch);
+router.get('/search', isAuthenticated, productSearch);
 
 // POST /admin/product/create  ✅
 router.post(
