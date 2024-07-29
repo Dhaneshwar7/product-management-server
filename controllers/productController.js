@@ -33,6 +33,13 @@ exports.productCreate = catchAsyncError(async (req, res, next) => {
 	res.status(201).json({ success: true, product });
 });
 
+/* -----------  Default Render all PRODUCT VIEWALL  -----------*/
+exports.renderAllProducts = catchAsyncError(async (req, res, next) => {
+	const  products  = await Product.find()
+	// console.log(products);
+	res.status(200).json({ success: true, products });
+});
+
 /* -----------  ADMIN PRODUCT VIEWALL  -----------*/
 exports.productViewAll = catchAsyncError(async (req, res, next) => {
 	const { products } = await Admin.findById(req.id).populate('products').exec();

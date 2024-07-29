@@ -12,6 +12,7 @@ const {
 	productsCreateMany,
 	productSearch,
 	productCreateFull,
+	renderAllProducts,
 } = require('../controllers/productController');
 const { isAuthenticated } = require('../middlewares/auth');
 
@@ -31,6 +32,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 /* -----------  ADMIN PRODUCT CREATE  -----------*/
+// POST /admin/product/view ✅
+router.get('/render-allproducts', renderAllProducts);
+
 // POST /admin/product/create  ✅
 router.post('/create', isAuthenticated, productCreate);
 

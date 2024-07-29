@@ -3,9 +3,7 @@ const mongoose = require('mongoose');
 const reviewSchema = new mongoose.Schema(
 	{
 		product: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'product',
-			required: true,
+			type: String,
 		},
 		user: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -50,7 +48,7 @@ const productModel = mongoose.Schema(
 		},
 		description: {
 			type: String,
-			minLength: [5, 'Description must not be exceed of 5 Words'],
+			minLength: [0, 'Description must not be exceed of 5 Words'],
 			maxLength: [50, 'Description must be atleast of 40 Words'],
 		},
 		manufactured: {
