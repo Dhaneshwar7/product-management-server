@@ -1,5 +1,37 @@
 const mongoose = require('mongoose');
 
+const reviewSchema = new mongoose.Schema(
+	{
+		product: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'product',
+			required: true,
+		},
+		user: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'user',
+			required: true,
+		},
+		name: {
+			type: String,
+			required: true,
+		},
+		rating: {
+			type: Number,
+			min: 1,
+			max: 5,
+		},
+		review: {
+			type: String,
+			minLength: [3, 'Review should be at least 3 characters long'],
+		},
+		createdAt: {
+			type: Date,
+			default: Date.now,
+		},
+	},
+	{ _id: false }
+);
 const productModel = mongoose.Schema(
 	{
 		admin: { type: mongoose.Schema.Types.ObjectId, ref: 'admin' },
@@ -26,6 +58,12 @@ const productModel = mongoose.Schema(
 		},
 		category: {
 			type: String,
+			default: 'None',
+		},
+		status: {
+			type: String,
+			enum: ['Available', 'Out of Stock', 'Discontinued'],
+			required: [true, 'Status is Required'],
 		},
 		productImageUrl: {
 			type: Object,
@@ -34,28 +72,16 @@ const productModel = mongoose.Schema(
 				url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=2804&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 			},
 		},
+		numberOfReviews: {
+			type: Number,
+			default: 0,
+		},
 		rating: {
 			type: Number,
-			min: 1,
-			max: 5,
+			default: 0,
 		},
-		reviews: [
-			{
-				reviewerName: String,
-				reviewText: String,
-				rating: {
-					type: Number,
-					min: 1,
-					max: 5,
-				},
-				date: Date,
-			},
-		],
-		status: {
-			type: String,
-			enum: ['Available', 'Out of Stock', 'Discontinued'],
-			required: [true, 'Status is Required'],
-		},
+
+		reviews: [reviewSchema],
 	},
 	{ timestamps: true }
 );

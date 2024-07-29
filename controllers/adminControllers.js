@@ -15,28 +15,12 @@ exports.currentAdmin = catchAsyncError(async (req, res, next) => {
 	res.json({ currentAdmin });
 });
 
-/* -----------  ADMIN SIGN_UP  -----------*/
-// exports.adminSignUp = catchAsyncError(async (req, res, next) => {
-// 	const { email } = req.body;
-// 	const existingAdmin = await Admin.findOne({ $or: [{ email }] });
-// 	if (existingAdmin) {
-// 		const error = new Error('Admin with this email or username already exists');
-// 		error.statusCode = 400;
-// 		res.status(600).json({ success: false, message: error });
-// 		return next(error);
-// 	}
-// 	const admin = new Admin(req.body);
-// 	await admin.save();
-
-// 	sendtoken(admin, 200, res);
-// });
-
 exports.adminSignUp = catchAsyncError(async (req, res, next) => {
 	const { email } = req.body;
 	const existingAdmin = await Admin.findOne({ $or: [{ email }] });
 	if (existingAdmin) {
 		const error = new ErrorHandler(
-			'Admin with this email or username already exists'
+			'Already Registered with this Email Address !'
 		);
 		error.statusCode = 400;
 		return next(error);
@@ -46,7 +30,6 @@ exports.adminSignUp = catchAsyncError(async (req, res, next) => {
 	const message = 'Account Created Successfully !';
 	sendtoken(admin, 200, res, message);
 });
-
 /* -----------  ADMIN SIGN_IN  -----------*/
 exports.adminSignIn = catchAsyncError(async (req, res, next) => {
 	const { email, password } = req.body;
