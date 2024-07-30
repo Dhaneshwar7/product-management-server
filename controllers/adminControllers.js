@@ -10,11 +10,22 @@ exports.homepage = catchAsyncError((req, res, next) => {
 	res.json({ message: 'This is HomePage' });
 });
 
+/* -----------CHECKS CURRENT ADMIN  -----------*/
 exports.currentAdmin = catchAsyncError(async (req, res, next) => {
-	const currentAdmin = await Admin.findById(req.id).exec();
-	res.json({ currentAdmin });
+	try {
+		const currentAdmin = await Admin.findById(req.id).exec();
+		if (!currentAdmin) {
+			const error = new ErrorHandler('Admin not Logged In !!');
+			error.statusCode = 401;
+			return next(error);
+		}
+		res.json({ currentAdmin });
+	} catch (error) {
+		console.log(error);
+	}
 });
 
+/* -----------  ADMIN SIGN_UP  -----------*/
 exports.adminSignUp = catchAsyncError(async (req, res, next) => {
 	const { email } = req.body;
 	const existingAdmin = await Admin.findOne({ $or: [{ email }] });
@@ -57,7 +68,6 @@ exports.adminSignOut = catchAsyncError(async (req, res, next) => {
 		secure: true,
 		sameSite: 'none',
 	};
-
 	res
 		.status(200)
 		.cookie('token', '', options)
@@ -75,34 +85,28 @@ exports.adminUpdate = catchAsyncError(async (req, res, next) => {
 /* -----------  ADMIN SEND_LINK_MAIL  -----------*/
 exports.adminSendLinkMail = catchAsyncError(async (req, res, next) => {
 	const admin = await Admin.findOne({ email: req.body.email }).exec();
-
 	if (!admin) {
 		return next(
 			new ErrorHandler('User not found with this Email Address', 404)
 		);
 	}
-
 	const url = `${req.protocol}://${req.get('host')}/admin/forget-link/${
 		admin._id
 	}`;
-
 	sendmail(req, res, next, url);
 	admin.resetpasswordToken = '1';
 	await admin.save();
-
 	res.json({ admin, url });
 });
 
 /* -----------  ADMIN FORGET_LINK  -----------*/
 exports.adminForgetLink = catchAsyncError(async (req, res, next) => {
 	const admin = await Admin.findById(req.params.id).exec();
-
 	if (!admin) {
 		return next(
 			new ErrorHandler('User not found with this Email Address', 404)
 		);
 	}
-
 	if (admin.resetpasswordToken == '1') {
 		admin.resetpasswordToken = '0';
 		admin.password = req.body.password;
@@ -110,7 +114,6 @@ exports.adminForgetLink = catchAsyncError(async (req, res, next) => {
 	} else {
 		return next(new ErrorHandler('Invalid forget link ! try again', 500));
 	}
-
 	res.status(200).json({ message: 'Password Changed Successfully' });
 });
 

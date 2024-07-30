@@ -1,27 +1,16 @@
-const exp = require('constants');
 const { catchAsyncError } = require('../middlewares/catchAsyncError');
 const Admin = require('../models/adminModel');
-const multer = require('multer');
 const ErrorHandler = require('../utils/ErrorHandlers');
-const { sendtoken } = require('../utils/SendToken');
-const { sendmail } = require('../utils/nodemailer');
 const path = require('path');
 const Product = require('../models/productModel');
 const imageKit = require('../utils/imageKit').uploadImagekit();
 
-/* ------------ Product Controllers ---------- */
-
-const storage = multer.diskStorage({
-	destination: (req, file, cb) => {
-		cb(null, 'uploads/'); // Change 'uploads/' to your desired directory
-	},
-	filename: (req, file, cb) => {
-		cb(null, `${Date.now()}-${file.originalname}`); // Create unique filenames
-	},
+/* -----------  Default Render all PRODUCT VIEWALL  -----------*/
+exports.renderAllProducts = catchAsyncError(async (req, res, next) => {
+	const  products  = await Product.find()
+	// console.log(products);
+	res.status(200).json({ success: true, products });
 });
-
-const upload = multer({ storage });
-
 /* -----------  ADMIN PRODUCT CREATE  -----------*/
 exports.productCreate = catchAsyncError(async (req, res, next) => {
 	const admin = await Admin.findById(req.id).exec();
@@ -33,12 +22,6 @@ exports.productCreate = catchAsyncError(async (req, res, next) => {
 	res.status(201).json({ success: true, product });
 });
 
-/* -----------  Default Render all PRODUCT VIEWALL  -----------*/
-exports.renderAllProducts = catchAsyncError(async (req, res, next) => {
-	const  products  = await Product.find()
-	// console.log(products);
-	res.status(200).json({ success: true, products });
-});
 
 /* -----------  ADMIN PRODUCT VIEWALL  -----------*/
 exports.productViewAll = catchAsyncError(async (req, res, next) => {
