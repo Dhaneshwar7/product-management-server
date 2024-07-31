@@ -11,8 +11,17 @@ exports.homepage = catchAsyncError((req, res, next) => {
 });
 
 exports.currentUser = catchAsyncError(async (req, res, next) => {
-	const currentUser = await User.findById(req.id).exec();
-	res.json({ currentUser });
+	try {
+		const currentUser = await User.findById(req.id).exec();
+		if (!currentUser) {
+			const error = new ErrorHandler('User Not Logged In !!');
+			error.statusCode = 401;
+			return next(error);
+		}
+		res.json({ currentUser });
+	} catch (error) {
+		console.log(error);
+	}
 });
 
 exports.userSignUp = catchAsyncError(async (req, res, next) => {
